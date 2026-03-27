@@ -16,6 +16,8 @@ import { ShareButton } from "@/components/designs/ShareButton";
 import { usePackageRegistry } from "@/components/providers/PackageProvider";
 import { useAIReady } from "@/hooks/useAIReady";
 import { AISetupPrompt } from "@/components/designs/AISetupPrompt";
+import { ModelPreview } from "@/components/designs/ModelPreview";
+import type { FloorPlanModel } from "@/types/floorplan";
 import { toast } from "sonner";
 
 interface Render {
@@ -59,12 +61,14 @@ export default function DesignFilePage() {
   const [userStyles, setUserStyles] = useState<{ id: string; name: string; prompt: string; negativePrompt: string; color: string }[]>([]);
   const [palettes, setPalettes] = useState<{ id: string; name: string; colors: Record<string, string> }[]>([]);
   const [selectedPalette, setSelectedPalette] = useState<string>("");
+  const [floorPlanModel, setFloorPlanModel] = useState<FloorPlanModel | null>(null);
+  const [sourceTab, setSourceTab] = useState<"image" | "model">("image");
   const [selectedRoom, setSelectedRoom] = useState<string>("");
   const [selectedPerspective, setSelectedPerspective] = useState<string>("eye-level");
   const [rooms, setRooms] = useState<{ id: string; name: string }[]>([]);
   const [generatingAll, setGeneratingAll] = useState(false);
   const [showAISetup, setShowAISetup] = useState(false);
-  const { hasGeneration } = useAIReady();
+  const { hasAnyProvider } = useAIReady();
 
   const fetchDesign = useCallback(() => {
     fetch(`/api/projects/${projectId}/designs/${fileId}`)
@@ -93,9 +97,12 @@ export default function DesignFilePage() {
       fetch(`/api/projects/${projectId}/images`).then((r) => r.json()).then((images) => {
         if (Array.isArray(images)) {
           for (const img of images) {
-            const model = (img.metadata as Record<string, unknown>)?.floorPlanModel as { rooms?: { id: string; name: string }[] } | undefined;
-            if (model?.rooms?.length) {
-              setRooms(model.rooms.map((r: { id: string; name: string }) => ({ id: r.id, name: r.name })));
+            const model = (img.metadata as Record<string, unknown>)?.floorPlanModel as FloorPlanModel | undefined;
+            if (model) {
+              if (model.rooms?.length) {
+                setRooms(model.rooms.map((r) => ({ id: r.id, name: r.name })));
+              }
+              setFloorPlanModel(model);
               break;
             }
           }
@@ -125,7 +132,7 @@ export default function DesignFilePage() {
 
   async function handleGenerate() {
     if (!selectedImageUrl) { toast.error("Select a source image"); return; }
-    if (!hasGeneration) { setShowAISetup(true); return; }
+    if (!hasAnyProvider) { setShowAISetup(true); return; }
     setGenerating(true);
 
     const roomObj = rooms.find((r) => r.id === selectedRoom);
@@ -167,7 +174,7 @@ export default function DesignFilePage() {
 
   async function handleGenerateAllPerspectives() {
     if (!selectedImageUrl) { toast.error("Select a source image"); return; }
-    if (!hasGeneration) { setShowAISetup(true); return; }
+    if (!hasAnyProvider) { setShowAISetup(true); return; }
     setGeneratingAll(true);
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (isGuest) headers["x-guest-mode"] = "true";
@@ -240,9 +247,29 @@ export default function DesignFilePage() {
       {/* Source image + result comparison */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm font-medium">{t("designs.sourceImage")}</Label>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-medium">{t("designs.sourceImage")}</Label>
+            {floorPlanModel && (
+              <div className="flex rounded-full p-0.5 ml-auto" style={{ background: "var(--muted)" }}>
+                <button onClick={() => setSourceTab("image")}
+                  className={`px-2.5 py-0.5 text-[10px] font-medium rounded-full transition-all ${sourceTab === "image" ? "text-white shadow-sm" : "text-muted-foreground"}`}
+                  style={sourceTab === "image" ? { background: "linear-gradient(135deg, #6f5100, #8b6914)" } : {}}>
+                  Image
+                </button>
+                <button onClick={() => setSourceTab("model")}
+                  className={`px-2.5 py-0.5 text-[10px] font-medium rounded-full transition-all ${sourceTab === "model" ? "text-white shadow-sm" : "text-muted-foreground"}`}
+                  style={sourceTab === "model" ? { background: "linear-gradient(135deg, #6f5100, #8b6914)" } : {}}>
+                  Model
+                </button>
+              </div>
+            )}
+          </div>
           <div className="border rounded-lg overflow-hidden bg-muted">
-            {selectedImageUrl ? (
+            {sourceTab === "model" && floorPlanModel ? (
+              <div className="h-64 flex items-center justify-center">
+                <ModelPreview model={floorPlanModel} width={380} height={250} />
+              </div>
+            ) : selectedImageUrl ? (
               <img src={selectedImageUrl} alt="Source" className="w-full h-64 object-contain" />
             ) : (
               <div className="h-64 flex items-center justify-center text-muted-foreground">No image</div>

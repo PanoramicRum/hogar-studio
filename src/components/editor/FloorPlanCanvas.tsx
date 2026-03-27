@@ -95,21 +95,30 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
     zoom, panX, panY, tool, floorPlanUrl, elements, measurements,
     measurePoints, scale, viewMode, floorPlanModel, wallDrawStart,
     setZoom, setPan, selectElement, addMeasurePoint,
-    addWall, addOpening, setWallDrawStart, selectWall,
+    addWall, addOpening, setWallDrawStart, selectWall, selectedWallId, updateWall,
     roomDrawPoints, addRoomDrawPoint, finishRoomDraw,
   } = useEditorStore();
 
   const [snapIndicator, setSnapIndicator] = useState<{ x: number; y: number } | null>(null);
 
-  // Snap to nearest wall endpoint
+  // Snap to nearest wall endpoint (or room draw point when in room tool)
   const SNAP_THRESHOLD = 15;
-  function snapToEndpoint(x: number, y: number): { x: number; y: number; snapped: boolean } {
+  const ROOM_CLOSE_THRESHOLD = 25;
+  function snapToEndpoint(x: number, y: number, includeRoomPoints = false): { x: number; y: number; snapped: boolean } {
     if (!floorPlanModel) return { x, y, snapped: false };
     let closest = { x, y };
     let minDist = SNAP_THRESHOLD;
     let snapped = false;
+    // Snap to wall endpoints
     for (const wall of floorPlanModel.walls) {
       for (const pt of [wall.start, wall.end]) {
+        const d = distance(pt, { x, y });
+        if (d < minDist) { minDist = d; closest = { x: pt.x, y: pt.y }; snapped = true; }
+      }
+    }
+    // Also snap to in-progress room draw points
+    if (includeRoomPoints) {
+      for (const pt of roomDrawPoints) {
         const d = distance(pt, { x, y });
         if (d < minDist) { minDist = d; closest = { x: pt.x, y: pt.y }; snapped = true; }
       }
@@ -231,15 +240,16 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
       }
 
       if (tool === "room") {
-        const snap = snapToEndpoint(x, y);
-        // If we have 3+ points and click near the first point, close the polygon
+        // Check closing FIRST with raw coordinates (before snapping moves them away)
         if (roomDrawPoints.length >= 3) {
           const first = roomDrawPoints[0];
-          if (distance(first, { x: snap.x, y: snap.y }) < SNAP_THRESHOLD) {
+          if (distance(first, { x, y }) < ROOM_CLOSE_THRESHOLD) {
             finishRoomDraw();
             return;
           }
         }
+        // Snap to wall endpoints and existing room vertices
+        const snap = snapToEndpoint(x, y, true);
         addRoomDrawPoint({ x: snap.x, y: snap.y });
         return;
       }
@@ -406,6 +416,20 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
           <Rect x={measurePoints[0].x - 4} y={measurePoints[0].y - 4} width={8} height={8} fill="red" cornerRadius={4} />
         )}
       </Layer>
+
+      {/* Selected wall endpoints — rendered on top of everything so they're always grabbable */}
+      {selectedWallId && floorPlanModel && tool === "select" && (() => {
+        const wall = floorPlanModel.walls.find((w) => w.id === selectedWallId);
+        if (!wall) return null;
+        return (
+          <Layer>
+            <Circle x={wall.start.x} y={wall.start.y} radius={10} fill="#6f5100" stroke="white" strokeWidth={3}
+              draggable onDragEnd={(e) => updateWall(wall.id, { start: { x: e.target.x(), y: e.target.y() } })} />
+            <Circle x={wall.end.x} y={wall.end.y} radius={10} fill="#6f5100" stroke="white" strokeWidth={3}
+              draggable onDragEnd={(e) => updateWall(wall.id, { end: { x: e.target.x(), y: e.target.y() } })} />
+          </Layer>
+        );
+      })()}
 
       {/* Calibration Layer */}
       <Layer>

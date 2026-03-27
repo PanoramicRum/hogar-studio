@@ -48,16 +48,16 @@ export function WallSegment2D({ wall, pixelsPerMeter }: WallSegment2DProps) {
         listening={false}
       />
 
-      {/* Endpoint handles (only when selected and in select mode) */}
+      {/* Endpoint handles (only when selected and in select mode) — larger, more visible */}
       {isSelected && tool === "select" && (
         <>
           <Circle
             x={wall.start.x}
             y={wall.start.y}
-            radius={6}
+            radius={9}
             fill="#6f5100"
             stroke="white"
-            strokeWidth={2}
+            strokeWidth={3}
             draggable
             onDragEnd={(e) => {
               updateWall(wall.id, {
@@ -68,10 +68,10 @@ export function WallSegment2D({ wall, pixelsPerMeter }: WallSegment2DProps) {
           <Circle
             x={wall.end.x}
             y={wall.end.y}
-            radius={6}
+            radius={9}
             fill="#6f5100"
             stroke="white"
-            strokeWidth={2}
+            strokeWidth={3}
             draggable
             onDragEnd={(e) => {
               updateWall(wall.id, {

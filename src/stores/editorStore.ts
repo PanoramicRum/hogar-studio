@@ -262,6 +262,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const model = state.floorPlanModel;
     const pts = state.roomDrawPoints;
     if (!model || pts.length < 3) { set({ roomDrawPoints: [] }); return; }
+
     const colors = ["#dbeafe", "#fef3c7", "#d1fae5", "#fce7f3", "#e0e7ff", "#fde68a", "#bbf7d0"];
     const newRoom: RoomPolygon = {
       id: `room-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -269,7 +270,38 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       points: pts,
       color: colors[model.rooms.length % colors.length],
     };
-    const newModel = { ...model, rooms: [...model.rooms, newRoom] };
+
+    // Auto-create walls for each edge of the room polygon
+    const WALL_MATCH_THRESHOLD = 12;
+    const newWalls: WallSegment[] = [];
+    for (let i = 0; i < pts.length; i++) {
+      const start = pts[i];
+      const end = pts[(i + 1) % pts.length];
+      // Check if a wall already exists between these two points
+      const existsAlready = model.walls.some((w) => {
+        const d1 = Math.sqrt((w.start.x - start.x) ** 2 + (w.start.y - start.y) ** 2);
+        const d2 = Math.sqrt((w.end.x - end.x) ** 2 + (w.end.y - end.y) ** 2);
+        const d3 = Math.sqrt((w.start.x - end.x) ** 2 + (w.start.y - end.y) ** 2);
+        const d4 = Math.sqrt((w.end.x - start.x) ** 2 + (w.end.y - start.y) ** 2);
+        return (d1 < WALL_MATCH_THRESHOLD && d2 < WALL_MATCH_THRESHOLD) ||
+               (d3 < WALL_MATCH_THRESHOLD && d4 < WALL_MATCH_THRESHOLD);
+      });
+      if (!existsAlready) {
+        newWalls.push({
+          id: `wall-${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${i}`,
+          start: { x: start.x, y: start.y },
+          end: { x: end.x, y: end.y },
+          thickness: 8,
+          height: model.wallHeight || 2.8,
+        });
+      }
+    }
+
+    const newModel = {
+      ...model,
+      rooms: [...model.rooms, newRoom],
+      walls: [...model.walls, ...newWalls],
+    };
     set({ floorPlanModel: newModel, roomDrawPoints: [], ...pushHistory({ ...state, floorPlanModel: newModel }) });
   },
 

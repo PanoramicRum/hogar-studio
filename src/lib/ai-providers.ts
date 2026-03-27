@@ -262,7 +262,7 @@ export interface ProviderInfo {
 
 export function getAvailableProviders(): ProviderInfo[] {
   return [
-    { id: "gemini", name: "Google Gemini", configured: !!process.env.GEMINI_API_KEY, capabilities: ["digitization", "analysis"], model: "gemini-2.5-flash", pricing: "Free (no credit card)", recommended: true },
+    { id: "gemini", name: "Google Gemini", configured: !!process.env.GEMINI_API_KEY, capabilities: ["generation", "digitization", "analysis"], model: "gemini-2.5-flash", pricing: "Free (no credit card)", recommended: true },
     { id: "openai", name: "OpenAI", configured: !!process.env.OPENAI_API_KEY, capabilities: ["generation", "digitization", "analysis"], model: "gpt-4o-mini + dall-e-3", pricing: "$0.005/analysis, $0.04/image" },
     { id: "anthropic", name: "Anthropic Claude", configured: !!process.env.ANTHROPIC_API_KEY, capabilities: ["digitization", "analysis"], model: "claude-haiku-4.5", pricing: "$0.002/analysis" },
     { id: "replicate", name: "Replicate", configured: !!process.env.REPLICATE_API_TOKEN, capabilities: ["generation"], model: "sdxl-interior-design", pricing: "$0.05-0.15/image" },
