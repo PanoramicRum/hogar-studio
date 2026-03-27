@@ -1,0 +1,104 @@
+name: hogar-prod
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-hogar}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-hogar}
+      - S3_ENDPOINT=http://storage:9000
+      - S3_PUBLIC_ENDPOINT=${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      - S3_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
+      - S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - S3_BUCKET=hogar-uploads
+      - S3_REGION=us-east-1
+      - REDIS_URL=redis://redis:6379
+      - AI_PROVIDER=${AI_PROVIDER:-}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - LOCAL_AI_ENDPOINT=${LOCAL_AI_ENDPOINT:-}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_URL=${AUTH_URL:-https://hogar.yourdomain.com}
+      - NEXT_TELEMETRY_DISABLED=1
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_started
+      redis:
+        condition: service_started
+    command: sh -c "npx prisma migrate deploy && node server.js"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot-conf:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+    depends_on:
+      - app
+    restart: always
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-conf:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hogar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-hogar}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hogar}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  storage:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: always
+
+  createbucket:
+    image: minio/mc:latest
+    depends_on:
+      - storage
+    entrypoint: >
+      /bin/sh -c "
+      sleep 3;
+      mc alias set local http://storage:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD};
+      mc mb --ignore-existing local/hogar-uploads;
+      mc anonymous set download local/hogar-uploads;
+      exit 0;
+      "
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+volumes:
+  pgdata:
+  minio_data:
+  certbot-conf:
+  certbot-www:

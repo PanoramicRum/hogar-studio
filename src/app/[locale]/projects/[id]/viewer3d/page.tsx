@@ -101,12 +101,30 @@ export default function Viewer3DPage() {
           <span className="material-symbols-outlined" style={{ fontSize: "20px", color: "#6f5100" }}>view_in_ar</span>
           <h2 className="font-bold">{t("viewer3d.title")}</h2>
         </div>
-        <Link href={`/projects/${projectId}/editor`}>
-          <Button variant="outline" size="sm">
-            <span className="material-symbols-outlined mr-1" style={{ fontSize: "14px" }}>arrow_back</span>
-            {t("viewer3d.backToEditor")}
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const canvas = document.querySelector("canvas");
+              if (canvas) {
+                const link = document.createElement("a");
+                link.download = "hogar-3d-view.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg surface-container-high hover:shadow-ambient transition-all"
+            style={{ color: "#6f5100" }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>photo_camera</span>
+            Screenshot
+          </button>
+          <Link href={`/projects/${projectId}/editor`}>
+            <Button variant="outline" size="sm">
+              <span className="material-symbols-outlined mr-1" style={{ fontSize: "14px" }}>arrow_back</span>
+              {t("viewer3d.backToEditor")}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* 3D Scene */}

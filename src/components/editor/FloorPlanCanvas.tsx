@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { Stage, Layer, Image as KonvaImage, Line, Rect, Circle, Group, Text, Arc } from "react-konva";
 import useImage from "use-image";
 import type Konva from "konva";
@@ -100,6 +100,28 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
   } = useEditorStore();
 
   const [snapIndicator, setSnapIndicator] = useState<{ x: number; y: number } | null>(null);
+  const [shiftHeld, setShiftHeld] = useState(false);
+
+  // Track shift key for angle constraints
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === "Shift") setShiftHeld(true); };
+    const up = (e: KeyboardEvent) => { if (e.key === "Shift") setShiftHeld(false); };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
+  }, []);
+
+  // Constrain point to 0/45/90 degree angles from a reference point
+  function constrainAngle(from: { x: number; y: number }, to: { x: number; y: number }): { x: number; y: number } {
+    if (!shiftHeld) return to;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx);
+    // Snap to nearest 45 degree increment
+    const snapped = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+    return { x: from.x + len * Math.cos(snapped), y: from.y + len * Math.sin(snapped) };
+  }
 
   // Snap to nearest wall endpoint (or room draw point when in room tool)
   const SNAP_THRESHOLD = 15;
@@ -207,14 +229,19 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
       }
 
       if (tool === "wall") {
-        const snap = snapToEndpoint(x, y);
+        let snap = snapToEndpoint(x, y);
+        // Apply angle constraint when Shift is held and we have a start point
+        if (shiftHeld && wallDrawStart) {
+          snap = { ...constrainAngle(wallDrawStart, snap), snapped: snap.snapped };
+        }
         if (!wallDrawStart) {
           setWallDrawStart({ x: snap.x, y: snap.y });
         } else {
+          const end = shiftHeld ? constrainAngle(wallDrawStart, { x: snap.x, y: snap.y }) : { x: snap.x, y: snap.y };
           addWall({
             id: makeId("wall"),
             start: wallDrawStart,
-            end: { x: snap.x, y: snap.y },
+            end,
             thickness: 8,
             height: floorPlanModel?.wallHeight || 2.8,
           });

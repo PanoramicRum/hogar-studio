@@ -78,6 +78,10 @@ export function EditorToolbar({ onSave, onDigitize, onManualModel, onDetectRooms
         <Button variant="outline" size="sm" onClick={() => setZoom(zoom / 1.2)}>-</Button>
         <span className="text-xs w-12 text-center">{Math.round(zoom * 100)}%</span>
         <Button variant="outline" size="sm" onClick={() => setZoom(zoom * 1.2)}>+</Button>
+        <button onClick={() => { setZoom(1); useEditorStore.getState().setPan(0, 0); }}
+          className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted/50" title="Reset view">
+          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>fit_screen</span>
+        </button>
       </div>
 
       {/* Undo / Redo */}
