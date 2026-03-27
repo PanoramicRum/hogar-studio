@@ -11,6 +11,8 @@ interface EditorState {
   // Tool state
   tool: EditorTool;
   selectedElementId: string | null;
+  selectedElementIds: string[]; // multi-select
+  clipboard: EditorElement | null;
 
   // Floor plan
   floorPlanUrl: string | null;
@@ -51,6 +53,10 @@ interface EditorState {
   addCalibrationPoint: (point: { x: number; y: number }) => void;
   resetCalibration: () => void;
   selectElement: (id: string | null) => void;
+  toggleSelectElement: (id: string) => void; // Shift+click multi-select
+  deleteSelected: () => void; // Delete all selected
+  copySelected: () => void;
+  pasteClipboard: () => void;
   addElement: (element: EditorElement) => void;
   updateElement: (id: string, updates: Partial<EditorElement>) => void;
   removeElement: (id: string) => void;
@@ -109,6 +115,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   panY: 0,
   tool: "select",
   selectedElementId: null,
+  selectedElementIds: [],
+  clipboard: null,
   floorPlanUrl: null,
   floorPlanImageId: null,
   scale: { pixelsPerMeter: 100, calibrated: false },
@@ -142,7 +150,45 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   resetCalibration: () => set({ calibrationPoints: [], scale: { pixelsPerMeter: 100, calibrated: false } }),
 
-  selectElement: (id) => set({ selectedElementId: id }),
+  selectElement: (id) => set({ selectedElementId: id, selectedElementIds: id ? [id] : [] }),
+
+  toggleSelectElement: (id) => {
+    const ids = get().selectedElementIds;
+    if (ids.includes(id)) {
+      set({ selectedElementIds: ids.filter((i) => i !== id), selectedElementId: ids.length > 1 ? ids.find((i) => i !== id) || null : null });
+    } else {
+      set({ selectedElementIds: [...ids, id], selectedElementId: id });
+    }
+  },
+
+  deleteSelected: () => {
+    const state = get();
+    const ids = state.selectedElementIds;
+    if (ids.length === 0) return;
+    const newElements = state.elements.filter((el) => !ids.includes(el.id));
+    set({ elements: newElements, selectedElementId: null, selectedElementIds: [], ...pushHistory({ ...state, elements: newElements }) });
+  },
+
+  copySelected: () => {
+    const state = get();
+    const el = state.elements.find((e) => e.id === state.selectedElementId);
+    if (el) set({ clipboard: { ...el } });
+  },
+
+  pasteClipboard: () => {
+    const state = get();
+    const el = state.clipboard;
+    if (!el) return;
+    const copy: EditorElement = {
+      ...el,
+      id: `el-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: `${el.name} (copy)`,
+      x: el.x + 30,
+      y: el.y + 30,
+    };
+    const newElements = [...state.elements, copy];
+    set({ elements: newElements, selectedElementId: copy.id, selectedElementIds: [copy.id], ...pushHistory({ ...state, elements: newElements }) });
+  },
 
   addElement: (element) => {
     const state = get();

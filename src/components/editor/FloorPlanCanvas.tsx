@@ -299,6 +299,31 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
     [setPan]
   );
 
+  // Pinch-to-zoom for touch devices
+  const lastTouchDist = useRef<number | null>(null);
+  const handleTouchMove = useCallback(
+    (e: Konva.KonvaEventObject<TouchEvent>) => {
+      const touches = e.evt.touches;
+      if (touches.length === 2) {
+        e.evt.preventDefault();
+        const dist = Math.sqrt(
+          (touches[0].clientX - touches[1].clientX) ** 2 +
+          (touches[0].clientY - touches[1].clientY) ** 2
+        );
+        if (lastTouchDist.current !== null) {
+          const scale = dist / lastTouchDist.current;
+          setZoom(zoom * scale);
+        }
+        lastTouchDist.current = dist;
+      }
+    },
+    [zoom, setZoom]
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    lastTouchDist.current = null;
+  }, []);
+
   const showImage = viewMode === "image" || viewMode === "both" || !floorPlanModel;
   const showModel = (viewMode === "model" || viewMode === "both") && !!floorPlanModel;
   const imageOpacity = viewMode === "both" ? 0.3 : 1;
@@ -316,6 +341,8 @@ export function FloorPlanCanvas({ width, height }: FloorPlanCanvasProps) {
       onWheel={handleWheel}
       onClick={handleStageClick}
       onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onDragEnd={handleStageDragEnd}
       className="bg-gray-100 dark:bg-zinc-900"
     >

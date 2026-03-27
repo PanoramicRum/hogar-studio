@@ -11,6 +11,7 @@ import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
 import { FurniturePalette } from "@/components/editor/FurniturePalette";
 import { CalibrationDialog } from "@/components/editor/CalibrationDialog";
+import { WallLengthInput } from "@/components/editor/WallLengthInput";
 import { toast } from "sonner";
 import { useAIReady } from "@/hooks/useAIReady";
 import { AISetupPrompt } from "@/components/designs/AISetupPrompt";
@@ -199,9 +200,23 @@ export default function EditorPage() {
   // Keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const s = useEditorStore.getState();
+
+      // Escape — cancel current drawing
+      if (e.key === "Escape") {
+        s.setWallDrawStart(null);
+        s.cancelRoomDraw();
+        s.selectElement(null);
+        s.selectWall(null);
+        s.selectOpening(null);
+        return;
+      }
+
+      // Delete/Backspace
       if (e.key === "Delete" || e.key === "Backspace") {
-        const s = useEditorStore.getState();
-        if (s.selectedElementId) {
+        if (s.selectedElementIds.length > 1) {
+          s.deleteSelected();
+        } else if (s.selectedElementId) {
           s.removeElement(s.selectedElementId);
         } else if (s.selectedWallId) {
           const isRoom = s.floorPlanModel?.rooms.find((r) => r.id === s.selectedWallId);
@@ -213,14 +228,20 @@ export default function EditorPage() {
           s.selectOpening(null);
         }
       }
+
+      // Ctrl+C — copy
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") { s.copySelected(); }
+
+      // Ctrl+V — paste
+      if ((e.ctrlKey || e.metaKey) && e.key === "v") { s.pasteClipboard(); }
+
+      // Ctrl+Z / Ctrl+Shift+Z — undo/redo
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         e.preventDefault();
-        if (e.shiftKey) {
-          useEditorStore.getState().redo();
-        } else {
-          useEditorStore.getState().undo();
-        }
+        if (e.shiftKey) s.redo(); else s.undo();
       }
+
+      // Ctrl+S — save
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
         handleSave();
@@ -290,6 +311,9 @@ export default function EditorPage() {
               </button>
             )}
           </div>
+
+          {/* Wall length input (floating) */}
+          <WallLengthInput />
 
           {/* Calibration dialog */}
           <CalibrationDialog />
