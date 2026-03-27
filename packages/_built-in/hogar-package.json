@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "id": "_built-in",
+  "name": "Hogar Studio Built-in",
+  "type": "bundle",
+  "version": "1.0.0",
+  "description": "Default styles and furniture included with Hogar Studio",
+  "author": { "name": "Hogar Studio", "url": "https://github.com/hogar-studio" },
+  "license": "MIT",
+  "tags": ["default", "built-in"],
+  "styles": [
+    {
+      "id": "modern",
+      "name": "Modern",
+      "nameI18n": { "en": "Modern", "es": "Moderno" },
+      "prompt": "modern interior design, clean lines, minimalist furniture, neutral palette, large windows, natural light, professional photography",
+      "negativePrompt": "cluttered, old-fashioned, dark, blurry, low quality",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "minimalist",
+      "name": "Minimalist",
+      "nameI18n": { "en": "Minimalist", "es": "Minimalista" },
+      "prompt": "minimalist interior, white walls, simple furniture, uncluttered space, zen aesthetic, clean geometry, professional photography",
+      "negativePrompt": "cluttered, ornate, busy patterns, dark, blurry",
+      "color": "#e2e8f0"
+    },
+    {
+      "id": "bohemian",
+      "name": "Bohemian",
+      "nameI18n": { "en": "Bohemian", "es": "Bohemio" },
+      "prompt": "bohemian interior, warm earth tones, layered textiles, indoor plants, macrame, eclectic furniture, cozy atmosphere, professional photography",
+      "negativePrompt": "sterile, cold, industrial, blurry, low quality",
+      "color": "#c2956a"
+    },
+    {
+      "id": "industrial",
+      "name": "Industrial",
+      "nameI18n": { "en": "Industrial", "es": "Industrial" },
+      "prompt": "industrial loft interior, exposed brick walls, metal fixtures, concrete floors, vintage furniture, edison bulbs, professional photography",
+      "negativePrompt": "delicate, pastel, ornate, blurry, low quality",
+      "color": "#78716c"
+    },
+    {
+      "id": "scandinavian",
+      "name": "Scandinavian",
+      "nameI18n": { "en": "Scandinavian", "es": "Escandinavo" },
+      "prompt": "scandinavian interior, light wood furniture, cozy textiles, hygge atmosphere, white and pastel colors, functional design, professional photography",
+      "negativePrompt": "dark, heavy, ornate, cluttered, blurry",
+      "color": "#d4c8a0"
+    },
+    {
+      "id": "midcentury",
+      "name": "Mid-Century Modern",
+      "nameI18n": { "en": "Mid-Century Modern", "es": "Mid-Century Moderno" },
+      "prompt": "mid-century modern interior, retro furniture, organic shapes, warm wood tones, statement lighting, geometric patterns, professional photography",
+      "negativePrompt": "modern minimalist, industrial, blurry, low quality",
+      "color": "#b45309"
+    },
+    {
+      "id": "tropical",
+      "name": "Tropical",
+      "nameI18n": { "en": "Tropical", "es": "Tropical" },
+      "prompt": "tropical interior design, natural materials, rattan furniture, lush indoor plants, bright colors, open airy space, professional photography",
+      "negativePrompt": "cold, dark, industrial, blurry, low quality",
+      "color": "#16a34a"
+    },
+    {
+      "id": "luxury",
+      "name": "Luxury",
+      "nameI18n": { "en": "Luxury", "es": "Lujo" },
+      "prompt": "luxury interior design, marble surfaces, gold accents, premium materials, elegant furniture, chandelier, rich textures, professional photography",
+      "negativePrompt": "cheap, simple, industrial, blurry, low quality",
+      "color": "#a16207"
+    }
+  ],
+  "furniture": [
+    {
+      "type": "sofa",
+      "name": "Sofa",
+      "nameI18n": { "en": "Sofa", "es": "Sofa" },
+      "defaultWidth": 2.1,
+      "defaultDepth": 0.9,
+      "color": "#8b5cf6",
+      "height3d": 0.8,
+      "category": "living"
+    },
+    {
+      "type": "bed",
+      "name": "Bed",
+      "nameI18n": { "en": "Bed", "es": "Cama" },
+      "defaultWidth": 2.0,
+      "defaultDepth": 1.5,
+      "color": "#3b82f6",
+      "height3d": 0.5,
+      "category": "bedroom"
+    },
+    {
+      "type": "table",
+      "name": "Table",
+      "nameI18n": { "en": "Table", "es": "Mesa" },
+      "defaultWidth": 1.2,
+      "defaultDepth": 0.8,
+      "color": "#f59e0b",
+      "height3d": 0.75,
+      "category": "dining"
+    },
+    {
+      "type": "chair",
+      "name": "Chair",
+      "nameI18n": { "en": "Chair", "es": "Silla" },
+      "defaultWidth": 0.5,
+      "defaultDepth": 0.5,
+      "color": "#10b981",
+      "height3d": 0.9,
+      "category": "dining"
+    },
+    {
+      "type": "desk",
+      "name": "Desk",
+      "nameI18n": { "en": "Desk", "es": "Escritorio" },
+      "defaultWidth": 1.4,
+      "defaultDepth": 0.6,
+      "color": "#6366f1",
+      "height3d": 0.75,
+      "category": "office"
+    },
+    {
+      "type": "shelf",
+      "name": "Shelf",
+      "nameI18n": { "en": "Shelf", "es": "Estante" },
+      "defaultWidth": 1.0,
+      "defaultDepth": 0.4,
+      "color": "#ec4899",
+      "height3d": 1.8,
+      "category": "storage"
+    },
+    {
+      "type": "lamp",
+      "name": "Lamp",
+      "nameI18n": { "en": "Lamp", "es": "Lampara" },
+      "defaultWidth": 0.3,
+      "defaultDepth": 0.3,
+      "color": "#f97316",
+      "height3d": 1.5,
+      "category": "lighting"
+    },
+    {
+      "type": "rug",
+      "name": "Rug",
+      "nameI18n": { "en": "Rug", "es": "Alfombra" },
+      "defaultWidth": 2.0,
+      "defaultDepth": 1.5,
+      "color": "#14b8a6",
+      "height3d": 0.02,
+      "category": "decor"
+    },
+    {
+      "type": "cabinet",
+      "name": "Cabinet",
+      "nameI18n": { "en": "Cabinet", "es": "Gabinete" },
+      "defaultWidth": 0.8,
+      "defaultDepth": 0.5,
+      "color": "#78716c",
+      "height3d": 0.9,
+      "category": "storage"
+    }
+  ]
+}

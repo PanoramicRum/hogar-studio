@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth Models (NextAuth) ─────────────────────────────────
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  accounts      Account[]
+  sessions      Session[]
+  projects      Project[]
+  settings      UserSettings?
+  styles        UserStyle[]
+  palettes      ColorPalette[]
+  shares             SharedLink[]
+  marketplaceItems   MarketplaceItem[]
+  marketplaceReviews MarketplaceReview[]
+  zone               String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replicateKey          String?  @db.Text
+  openaiKey             String?  @db.Text
+  anthropicKey          String?  @db.Text
+  geminiKey             String?  @db.Text
+  localEndpoint         String?
+  localModel            String?
+  localApiKey           String?  @db.Text
+  defaultDigitizer      String?  // preferred provider for digitization
+  defaultGenerator      String?  // preferred provider for design generation
+  updatedAt             DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Project Models ─────────────────────────────────────────
+
+model Project {
+  id            String           @id @default(cuid())
+  name          String
+  description   String?
+  coverImageUrl String?
+  userId        String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images      ProjectImage[]
+  elements    ProjectElement[]
+  designFiles DesignFile[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model ProjectImage {
+  id        String    @id @default(cuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      ImageType
+  url       String
+  filename  String
+  metadata  Json?
+  createdAt DateTime  @default(now())
+
+  @@index([projectId])
+}
+
+enum ImageType {
+  PHOTO
+  FLOOR_PLAN
+}
+
+model ProjectElement {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String
+  type          String
+  positionX     Float?
+  positionY     Float?
+  width         Float?
+  height        Float?
+  height3d      Float?
+  rotation      Float?   @default(0)
+  furnitureUrl  String?
+  furnitureData Json?
+  imageUrl      String?
+  isCustom      Boolean  @default(false)
+  color         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ─── Design Models ──────────────────────────────────────────
+
+model DesignFile {
+  id        String       @id @default(cuid())
+  projectId String
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  style     String
+  status    DesignStatus @default(DRAFT)
+  aiParams  Json?
+  renders   DesignRender[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([projectId])
+}
+
+enum DesignStatus {
+  DRAFT
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+model DesignRender {
+  id           String     @id @default(cuid())
+  designFileId String
+  designFile   DesignFile @relation(fields: [designFileId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  thumbnailUrl String?
+  prompt       String
+  modelUsed    String
+  parameters   Json?
+  roomName     String?
+  perspective  String?
+  createdAt    DateTime   @default(now())
+
+  @@index([designFileId])
+}
+
+// ─── User Content Models ────────────────────────────────────
+
+model UserStyle {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  prompt          String   @db.Text
+  negativePrompt  String   @db.Text
+  color           String
+  previewImageUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model ColorPalette {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  name      String
+  colors    Json     // { wall, floor, accent1, accent2, trim }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ─── Social / Sharing Models ────────────────────────────────
+
+model SharedLink {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  projectName  String
+  roomName     String?
+  style        String?
+  perspective  String?
+  description  String?
+  expiresAt    DateTime?
+  viewCount    Int            @default(0)
+  comments     ShareComment[]
+  createdAt    DateTime       @default(now())
+
+  @@index([userId])
+}
+
+model ShareComment {
+  id         String     @id @default(cuid())
+  shareId    String
+  share      SharedLink @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  authorName String
+  text       String     @db.Text
+  reaction   String?
+  createdAt  DateTime   @default(now())
+
+  @@index([shareId])
+}
+
+// ─── Marketplace Models ─────────────────────────────────────
+
+model MarketplaceItem {
+  id              String              @id @default(cuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            String              // style | furniture | palette | bundle
+  title           String
+  description     String              @db.Text
+  previewImageUrl String?
+  data            Json                // the actual style/furniture/palette data
+  downloads       Int                 @default(0)
+  rating          Float               @default(0)
+  published       Boolean             @default(true)
+  reviews         MarketplaceReview[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([type])
+}
+
+model MarketplaceReview {
+  id        String          @id @default(cuid())
+  itemId    String
+  item      MarketplaceItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?         @db.Text
+  createdAt DateTime        @default(now())
+
+  @@unique([itemId, userId])
+  @@index([itemId])
+}
+
+// ─── Furniture Provider Models ──────────────────────────────
+
+model FurnitureProvider {
+  id         String            @id @default(cuid())
+  name       String
+  website    String
+  country    String
+  zone       String
+  categories String[]
+  logoUrl    String?
+  active     Boolean           @default(true)
+  products   ProviderProduct[]
+  createdAt  DateTime          @default(now())
+
+  @@index([zone])
+  @@index([country])
+}
+
+model ProviderProduct {
+  id         String            @id @default(cuid())
+  providerId String
+  provider   FurnitureProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  name       String
+  category   String
+  dimensions Json              // { width, depth, height in cm }
+  price      Float
+  currency   String            @default("USD")
+  imageUrl   String?
+  productUrl String
+  createdAt  DateTime          @default(now())
+
+  @@index([providerId])
+  @@index([category])
+}

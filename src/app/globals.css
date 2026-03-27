@@ -1,0 +1,206 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-inter);
+  --font-heading: var(--font-manrope);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ─── Hogar Studio "Digital Atelier" Design System ─── */
+/* M3-inspired palette from Stitch DESIGN.md */
+
+:root {
+  /* Primary: The Hearth (gold) */
+  --primary: #6f5100;
+  --primary-foreground: #ffffff;
+
+  /* Surface hierarchy (no-line rule: use these for depth) */
+  --background: #faf8ff;
+  --foreground: #131b2e;
+  --card: #f2f3ff;
+  --card-foreground: #131b2e;
+  --popover: #ffffff;
+  --popover-foreground: #131b2e;
+
+  /* Secondary: The Foundation (slate) */
+  --secondary: #d5e3fc;
+  --secondary-foreground: #515f74;
+
+  /* Muted / surface containers */
+  --muted: #eaedff;
+  --muted-foreground: #515f74;
+
+  /* Accent */
+  --accent: #f2f3ff;
+  --accent-foreground: #131b2e;
+
+  /* Destructive */
+  --destructive: #ba1a1a;
+
+  /* Borders: ghost borders only (outline-variant at low opacity) */
+  --border: rgba(209, 197, 178, 0.15);
+  --input: #e2e7ff;
+  --ring: #8b6914;
+
+  /* Charts */
+  --chart-1: #6f5100;
+  --chart-2: #8b6914;
+  --chart-3: #89411d;
+  --chart-4: #515f74;
+  --chart-5: #131b2e;
+
+  --radius: 0.5rem;
+
+  /* Sidebar */
+  --sidebar: #f2f3ff;
+  --sidebar-foreground: #131b2e;
+  --sidebar-primary: #6f5100;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaedff;
+  --sidebar-accent-foreground: #6f5100;
+  --sidebar-border: rgba(209, 197, 178, 0.15);
+  --sidebar-ring: #8b6914;
+}
+
+.dark {
+  --primary: #ecc165;
+  --primary-foreground: #3a2800;
+
+  --background: #131b2e;
+  --foreground: #eef0ff;
+  --card: #1e2640;
+  --card-foreground: #eef0ff;
+  --popover: #1e2640;
+  --popover-foreground: #eef0ff;
+
+  --secondary: #3a485b;
+  --secondary-foreground: #b9c7df;
+
+  --muted: #283044;
+  --muted-foreground: #b9c7df;
+
+  --accent: #283044;
+  --accent-foreground: #eef0ff;
+
+  --destructive: #ffb4ab;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #ecc165;
+
+  --chart-1: #ecc165;
+  --chart-2: #ffb596;
+  --chart-3: #b9c7df;
+  --chart-4: #89411d;
+  --chart-5: #515f74;
+
+  --sidebar: #1e2640;
+  --sidebar-foreground: #eef0ff;
+  --sidebar-primary: #ecc165;
+  --sidebar-primary-foreground: #3a2800;
+  --sidebar-accent: #283044;
+  --sidebar-accent-foreground: #ecc165;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #ecc165;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), "Inter", sans-serif;
+  }
+  html {
+    @apply font-sans;
+  }
+  /* Headlines use Manrope */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-manrope), "Manrope", sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ─── Ambient Shadows (no traditional drop shadows) ─── */
+.shadow-ambient {
+  box-shadow: 0 20px 40px rgba(19, 27, 46, 0.06);
+}
+.shadow-ambient-lg {
+  box-shadow: 0 30px 60px rgba(19, 27, 46, 0.08);
+}
+
+/* ─── Primary Gradient Button ─── */
+.bg-primary-gradient {
+  background: linear-gradient(135deg, #6f5100, #8b6914);
+}
+.bg-primary-gradient:hover {
+  background: linear-gradient(135deg, #8b6914, #a07a1a);
+}
+
+/* ─── Ghost Inputs (no border, surface bg, bottom-border on focus) ─── */
+.input-ghost {
+  border: none;
+  background: var(--input);
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+.input-ghost:focus {
+  border-bottom: 2px solid var(--ring);
+  outline: none;
+}
+
+/* ─── Surface containers for tonal layering ─── */
+.surface-container-lowest { background: #ffffff; }
+.surface-container-low { background: #f2f3ff; }
+.surface-container { background: #eaedff; }
+.surface-container-high { background: #e2e7ff; }
+.surface-container-highest { background: #dae2fd; }
+
+.dark .surface-container-lowest { background: #131b2e; }
+.dark .surface-container-low { background: #1e2640; }
+.dark .surface-container { background: #283044; }
+.dark .surface-container-high { background: #323c54; }
+.dark .surface-container-highest { background: #3c4664; }
